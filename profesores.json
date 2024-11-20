@@ -222,5 +222,19 @@
         "apellido": "Robledo",
         "telefono": "434234",
         "direccion": "calle 45"
+    },
+    {
+        "id": 6160,
+        "nombre": "Nito",
+        "apellido": "Garcia",
+        "telefono": "23434",
+        "direccion": "calle 45"
+    },
+    {
+        "id": 8731,
+        "nombre": "Mairo",
+        "apellido": "Lopez",
+        "telefono": "23234342",
+        "direccion": "calle aldama"
     }
 ]
