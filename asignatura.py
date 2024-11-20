@@ -86,9 +86,11 @@ def main(page: ft.Page):
             page.snack_bar.open=True
             page.update()
             return
-        
+        auxHorario=documents.cargar_datos("horarios.json")
+        id=documents.generar_id_unico(auxHorario)
         # Crear el horario
         horario = {
+            "id":id,
             "id_profesor": profesor_seleccionado["id"],
             "id_materia": materia_seleccionada["id"],
             "nombre_profesor": profesor_seleccionado["nombre"],

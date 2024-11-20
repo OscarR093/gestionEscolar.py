@@ -1,17 +1,10 @@
 [
     {
-        "id": 1775,
-        "nombre": "Lengua y Literatura",
-        "HoraInicio": "14:00",
-        "HoraFinal": "15:00",
-        "Asignada": false
-    },
-    {
         "id": 1776,
         "nombre": "Geograf\u00eda",
         "HoraInicio": "15:00",
         "HoraFinal": "16:00",
-        "Asignada": false
+        "Asignada": true
     },
     {
         "id": 1778,
@@ -25,7 +18,7 @@
         "nombre": "Ciencias Sociales",
         "HoraInicio": "18:00",
         "HoraFinal": "19:00",
-        "Asignada": true
+        "Asignada": false
     },
     {
         "id": 1780,
@@ -53,7 +46,7 @@
         "nombre": "Inform\u00e1tica",
         "HoraInicio": "10:00",
         "HoraFinal": "11:00",
-        "Asignada": true
+        "Asignada": false
     },
     {
         "id": 1784,
@@ -74,7 +67,7 @@
         "nombre": "nones ",
         "HoraInicio": "13:00",
         "HoraFinal": "16:00",
-        "Asignada": true
+        "Asignada": false
     },
     {
         "id": 6622,
@@ -82,5 +75,26 @@
         "HoraInicio": "13:00",
         "HoraFinal": "14:00",
         "Asignada": false
+    },
+    {
+        "id": 2541,
+        "nombre": "Ciencias",
+        "HoraInicio": "12:00",
+        "HoraFinal": "14:00",
+        "asignada": false
+    },
+    {
+        "id": 8271,
+        "nombre": "Artes Plasticas",
+        "HoraInicio": "13:00",
+        "HoraFinal": "14:00",
+        "asignada": false
+    },
+    {
+        "id": 9000,
+        "nombre": "Coro",
+        "HoraInicio": "13:00",
+        "HoraFinal": "16:00",
+        "asignada": false
     }
 ]

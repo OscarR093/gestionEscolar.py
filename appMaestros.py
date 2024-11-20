@@ -46,9 +46,38 @@ def main(page: ft.Page):
 
     def eliminar_profesor(profesor_id):
         nonlocal profesores
+        # Cargar los datos de horarios y materias
+        horarios = documents.cargar_datos("horarios.json")
+        materias = documents.cargar_datos("materias.json")
+    
+    # Buscar los horarios relacionados con el profesor a eliminar
+        horarios_a_eliminar = [h for h in horarios if h["id_profesor"] == profesor_id]
+    
+        for horario in horarios_a_eliminar:
+        # Encontrar la materia asignada en el horario
+            materia_id = horario["id_materia"]
+            for materia in materias:
+                if materia["id"] == materia_id:
+                # Cambiar el estado de la materia a "Asignada: False"
+                    materia["Asignada"] = False
+                    break
+    
+        # Eliminar los horarios relacionados con el profesor
+        horarios = [h for h in horarios if h["id_profesor"] != profesor_id]
+    
+        # Eliminar el profesor de la lista de profesores
         profesores = [p for p in profesores if p["id"] != profesor_id]
+    
+        # Guardar los datos actualizados
         documents.guardar_datos("profesores.json", profesores)
+        documents.guardar_datos("materias.json", materias)
+        documents.guardar_datos("horarios.json", horarios)
+    
+        # Actualizar la tabla de la UI
+        page.snack_bar=ft.SnackBar(ft.Text("Profesor Eliminado Correctamente!"))
+        page.snack_bar.open=True
         actualizar_tabla()
+
 
     def agregar_profesor(e):
         nonlocal profesores
@@ -67,6 +96,8 @@ def main(page: ft.Page):
         profesores.append(nuevo_profesor)
         documents.guardar_datos("profesores.json", profesores)
         nombre_input.value = apellido_input.value = telefono_input.value = direccion_input.value = ""
+        page.snack_bar=ft.SnackBar(ft.Text("Profesor Agregado Correctamente"))
+        page.snack_bar.open=True
         actualizar_tabla()
 
     # Formulario

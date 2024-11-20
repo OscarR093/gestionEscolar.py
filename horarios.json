@@ -1,55 +1,22 @@
 [
     {
-        "id_profesor": 9141,
+        "id": 4226,
+        "id_profesor": 8721,
         "id_materia": 1778,
-        "nombre_profesor": "Luc\u00eda",
+        "nombre_profesor": "Alberto",
+        "apellido_profesor": "Gomez",
         "nombre_materia": "M\u00fasica",
         "hora_inicio": "17:00",
         "hora_final": "18:00"
     },
     {
-        "id_profesor": 2154,
-        "id_materia": 1779,
-        "nombre_profesor": "Marta",
-        "apellido_profesor": "Fern\u00e1ndez",
-        "nombre_materia": "Ciencias Sociales",
-        "hora_inicio": "18:00",
-        "hora_final": "19:00"
-    },
-    {
-        "id_profesor": 5207,
-        "id_materia": 1778,
-        "nombre_profesor": "Pedro",
-        "apellido_profesor": "Gonz\u00e1lez",
-        "nombre_materia": "M\u00fasica",
-        "hora_inicio": "17:00",
-        "hora_final": "18:00"
-    },
-    {
-        "id_profesor": 3017,
-        "id_materia": 1779,
-        "nombre_profesor": "Ana",
-        "apellido_profesor": "Garc\u00eda",
-        "nombre_materia": "Ciencias Sociales",
-        "hora_inicio": "18:00",
-        "hora_final": "19:00"
-    },
-    {
-        "id_profesor": 1324,
-        "id_materia": 1783,
-        "nombre_profesor": "Ana",
-        "apellido_profesor": "Ram\u00edrez",
-        "nombre_materia": "Inform\u00e1tica",
-        "hora_inicio": "10:00",
-        "hora_final": "11:00"
-    },
-    {
-        "id_profesor": 6753,
-        "id_materia": 2196,
-        "nombre_profesor": "Carlos",
-        "apellido_profesor": "Mart\u00ednez",
-        "nombre_materia": "nones ",
-        "hora_inicio": "13:00",
+        "id": 6623,
+        "id_profesor": 8721,
+        "id_materia": 1776,
+        "nombre_profesor": "Alberto",
+        "apellido_profesor": "Gomez",
+        "nombre_materia": "Geograf\u00eda",
+        "hora_inicio": "15:00",
         "hora_final": "16:00"
     }
 ]
