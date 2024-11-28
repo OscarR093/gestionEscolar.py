@@ -1,5 +1,5 @@
 import flet as ft
-import documents
+import services.conexion as con
 
 # Inicializar la variable global
 timeFormatError = False
@@ -25,7 +25,7 @@ def validate_time(e):
     e.page.update()
 
 def main(page: ft.Page):
-    materias = documents.cargar_datos("materias.json")
+    materias = con.get_request("materias")
 
     error_dialog = ft.AlertDialog(
         title=ft.Text("Error de validación"),
@@ -69,9 +69,14 @@ def main(page: ft.Page):
         page.update()
 
     def eliminar_materia(materia_id):
+        horarios_a_eliminar=con.search_by_field("horarios","id_materia",materia_id)
         nonlocal materias
-        materias = [m for m in materias if m["id"] != materia_id]
-        documents.guardar_datos("materias.json", materias)
+        if horarios_a_eliminar != None:
+            for horario in horarios_a_eliminar:
+                id_horario=horario["id"]
+                con.delete_request("horarios", id_horario)
+        con.delete_request("materias",materia_id)
+        materias=con.get_request("materias")
         actualizar_tabla()
 
     def agregar_materia(e):
@@ -89,15 +94,16 @@ def main(page: ft.Page):
             return
 
         nueva_materia = {
-            "id": documents.generar_id_unico(materias),
+            "id":"",
             "nombre": nombre_input.value,
             "HoraInicio": hora_inicio_input.value,
             "HoraFinal": hora_final_input.value,
-            "asignada": False,
+            "Asignada": False,
         }
 
-        materias.append(nueva_materia)
-        documents.guardar_datos("materias.json", materias)
+        #print(nueva_materia)
+        con.post_request("materias",nueva_materia)
+        materias = con.get_request("materias")
         nombre_input.value = hora_inicio_input.value = hora_final_input.value = ""
         page.snack_bar = ft.SnackBar(ft.Text("Materia Capturada Correctamente!"))
         page.snack_bar.open = True

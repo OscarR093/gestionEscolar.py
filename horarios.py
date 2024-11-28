@@ -1,10 +1,10 @@
 import flet as ft
-import documents
+import services.conexion as con
 
 
 def main(page: ft.Page):
     global horarios
-    horarios = documents.cargar_datos("horarios.json")
+    horarios = con.get_request("horarios")
 
 
     def actualizar_tabla():
@@ -43,32 +43,15 @@ def main(page: ft.Page):
 
     def eliminar_horario(horario_id):
         global horarios
-        materias = documents.cargar_datos("materias.json")
-
-        # Encontrar el horario a eliminar
-        horario_a_eliminar = None
-        
-        for horario in horarios:
-            if horario["id"] == horario_id:
-                horario_a_eliminar = horario
-                break
-
-        if horario_a_eliminar:
-            # Encontrar la materia asignada en el horario
-            materia_id = horario_a_eliminar["id_materia"]
-            for materia in materias:
-                if materia["id"] == materia_id:
-                    # Cambiar el estado de la materia a "Asignada: False"
-                    materia["Asignada"] = False
-                    break
-
-        # Eliminar el horario
-        horarios = [h for h in horarios if h["id"] != horario_id]
-
-        # Guardar los cambios en los archivos JSON
-        documents.guardar_datos("horarios.json", horarios)
-        documents.guardar_datos("materias.json", materias)
-
+        horario_seleccionado=con.get_by_id("horarios",horario_id)
+        materia_a_modificar_id=horario_seleccionado["id_materia"]
+        materia_a_modificar=con.get_by_id("materias",materia_a_modificar_id)
+        materia_a_modificar["Asignada"]=False
+        con.put_request("materias",materia_a_modificar_id,materia_a_modificar)
+        con.delete_request("horarios",horario_id)
+        horarios=con.get_request("horarios")
+        page.snack_bar = ft.SnackBar(ft.Text("Horario eliminado correctamente"))
+        page.snack_bar.open = True
         # Actualizar la tabla
         actualizar_tabla()
 

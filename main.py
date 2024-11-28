@@ -2,7 +2,7 @@ import flet as ft
 import appMaestros
 import appMaterias
 import asignatura
-import documents
+import services.conexion as con
 import horarios
 
 def main(page: ft.Page):
@@ -14,10 +14,11 @@ def main(page: ft.Page):
     
     def route_change(route):
         page.views.clear()
-        materias = documents.cargar_datos("materias.json")
-        materias_no_asignadas = len([materia for materia in materias if not materia.get("Asignada", False)])
-        TextoMaterias=ft.Text(f"Hay {len(materias)} Materias almacenadas", size=14, weight=ft.FontWeight.BOLD)
-        TextoNoAsignadas=ft.Text(f"De las cuales {materias_no_asignadas} no estan asignadas",size=14, weight=ft.FontWeight.BOLD)
+        materias_no_asignadas = con.search_by_field("materias","Asignada",False)
+        if materias_no_asignadas != None:
+            TextoMaterias=ft.Text(f"Hay {len(materias_no_asignadas)} materias sin asignar")
+        else:
+            TextoMaterias=ft.Text(f"Todas las materias se han asignado")
         
         if page.route == "/":
             # Menú principal
@@ -26,7 +27,7 @@ def main(page: ft.Page):
                     "/",
                     controls=[
                         ft.Text("Menú Principal", size=30, weight=ft.FontWeight.BOLD),
-                        TextoMaterias, TextoNoAsignadas,
+                        TextoMaterias,
                         ft.ElevatedButton("Ir a Gestión de Maestros", on_click=lambda e: page.go("/maestros")),
                         ft.ElevatedButton("Ir a Gestión de Materias", on_click=lambda e: page.go("/materias")),
                         ft.ElevatedButton("Ir a Asignaturas", on_click=lambda e: page.go("/asignatura")),

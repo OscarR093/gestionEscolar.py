@@ -1,8 +1,8 @@
 import flet as ft
-import documents
+import services.conexion as con
 
 def main(page: ft.Page):
-    profesores = documents.cargar_datos("profesores.json")
+    profesores = con.get_request("maestros")
 
     error_dialog = ft.AlertDialog(
         title=ft.Text("Error de validación"),
@@ -46,33 +46,25 @@ def main(page: ft.Page):
 
     def eliminar_profesor(profesor_id):
         nonlocal profesores
-        # Cargar los datos de horarios y materias
-        horarios = documents.cargar_datos("horarios.json")
-        materias = documents.cargar_datos("materias.json")
+        # Cargar los datos de las materias
+        materias = con.get_request("materias")
     
     # Buscar los horarios relacionados con el profesor a eliminar
-        horarios_a_eliminar = [h for h in horarios if h["id_profesor"] == profesor_id]
+        horarios_a_eliminar = con.search_by_field("horarios", "id_profesor", profesor_id)
+        if horarios_a_eliminar != None:
+            for horario in horarios_a_eliminar:
+                # Encontrar la materia asignada en el horario
+                materia_id = horario["id_materia"]
+                for materia in materias:
+                    if materia["id"] == materia_id:
+                    # Cambiar el estado de la materia a "Asignada: False"
+                        materia["Asignada"] = False
+                        con.put_request("materias",materia_id,materia)
+                        
+                con.delete_request("horarios", horario["id"])
     
-        for horario in horarios_a_eliminar:
-        # Encontrar la materia asignada en el horario
-            materia_id = horario["id_materia"]
-            for materia in materias:
-                if materia["id"] == materia_id:
-                # Cambiar el estado de la materia a "Asignada: False"
-                    materia["Asignada"] = False
-                    break
-    
-        # Eliminar los horarios relacionados con el profesor
-        horarios = [h for h in horarios if h["id_profesor"] != profesor_id]
-    
-        # Eliminar el profesor de la lista de profesores
-        profesores = [p for p in profesores if p["id"] != profesor_id]
-    
-        # Guardar los datos actualizados
-        documents.guardar_datos("profesores.json", profesores)
-        documents.guardar_datos("materias.json", materias)
-        documents.guardar_datos("horarios.json", horarios)
-    
+        con.delete_request("maestros",profesor_id)
+        profesores = con.get_request("maestros")
         # Actualizar la tabla de la UI
         page.snack_bar=ft.SnackBar(ft.Text("Profesor Eliminado Correctamente!"))
         page.snack_bar.open=True
@@ -82,7 +74,7 @@ def main(page: ft.Page):
     def agregar_profesor(e):
         nonlocal profesores
         nuevo_profesor = {
-            "id": documents.generar_id_unico(profesores),
+            "id":"",
             "nombre": nombre_input.value,
             "apellido": apellido_input.value,
             "telefono": telefono_input.value,
@@ -93,8 +85,8 @@ def main(page: ft.Page):
             error_dialog.open = True
             page.update()
             return
-        profesores.append(nuevo_profesor)
-        documents.guardar_datos("profesores.json", profesores)
+        con.post_request("maestros",nuevo_profesor)
+        profesores = con.get_request("maestros")
         nombre_input.value = apellido_input.value = telefono_input.value = direccion_input.value = ""
         page.snack_bar=ft.SnackBar(ft.Text("Profesor Agregado Correctamente"))
         page.snack_bar.open=True
