@@ -25,7 +25,25 @@ def validate_time(e):
     e.page.update()
 
 def main(page: ft.Page):
+    loading_indicator = ft.Container(
+        content=ft.ProgressRing(),
+        alignment=ft.alignment.center,  # Centrado en el contenedor
+        visible=False,  # Inicialmente oculto
+        expand=True,  # Asegura que ocupe toda la pantalla
+    )
+
+    def show_loading():
+        loading_indicator.visible = True
+        page.update()
+
+    def hide_loading():
+        loading_indicator.visible = False
+        page.update()
+
+    # Carga inicial de materias
+    show_loading()
     materias = con.get_request("materias")
+    hide_loading()
 
     error_dialog = ft.AlertDialog(
         title=ft.Text("Error de validación"),
@@ -69,17 +87,19 @@ def main(page: ft.Page):
         page.update()
 
     def eliminar_materia(materia_id):
-        horarios_a_eliminar=con.search_by_field("horarios","id_materia",materia_id)
+        show_loading()
         nonlocal materias
-        if horarios_a_eliminar != None:
+        horarios_a_eliminar = con.search_by_field("horarios", "id_materia", materia_id)
+        if horarios_a_eliminar:
             for horario in horarios_a_eliminar:
-                id_horario=horario["id"]
-                con.delete_request("horarios", id_horario)
-        con.delete_request("materias",materia_id)
-        materias=con.get_request("materias")
+                con.delete_request("horarios", horario["id"])
+        con.delete_request("materias", materia_id)
+        materias = con.get_request("materias")
         actualizar_tabla()
+        hide_loading()
 
     def agregar_materia(e):
+        show_loading()
         nonlocal materias
         global timeFormatError
         if (
@@ -94,20 +114,20 @@ def main(page: ft.Page):
             return
 
         nueva_materia = {
-            "id":"",
+            "id": "",
             "nombre": nombre_input.value,
             "HoraInicio": hora_inicio_input.value,
             "HoraFinal": hora_final_input.value,
             "Asignada": False,
         }
 
-        #print(nueva_materia)
-        con.post_request("materias",nueva_materia)
+        con.post_request("materias", nueva_materia)
         materias = con.get_request("materias")
         nombre_input.value = hora_inicio_input.value = hora_final_input.value = ""
         page.snack_bar = ft.SnackBar(ft.Text("Materia Capturada Correctamente!"))
         page.snack_bar.open = True
         actualizar_tabla()
+        hide_loading()
 
     nombre_input = ft.TextField(label="Nombre", width=200)
     hora_inicio_input = ft.TextField(
@@ -142,12 +162,19 @@ def main(page: ft.Page):
 
     actualizar_tabla()
 
-    return ft.Column(
+    # Usamos un Stack para superponer el indicador de carga
+    return ft.Stack(
         controls=[
-            ft.Text("Gestión de Materias", size=24, weight=ft.FontWeight.BOLD),
-            formulario,
-            containerTabla,
+            ft.Column(
+                controls=[
+                    ft.Text("Gestión de Materias", size=24, weight=ft.FontWeight.BOLD),
+                    formulario,
+                    containerTabla,
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            ),
+            loading_indicator,
         ],
-        alignment=ft.MainAxisAlignment.CENTER,
-        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+        expand=True,  # Asegura que el Stack ocupe toda la pantalla
     )

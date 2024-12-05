@@ -3,11 +3,29 @@ import services.conexion as con
 
 
 def main(page: ft.Page):
+    loading_indicator = ft.Container(
+        content=ft.ProgressRing(),
+        alignment=ft.alignment.center,  # Centrado en el contenedor
+        visible=False,  # Inicialmente oculto
+        expand=True,  # Asegura que ocupe toda la pantalla
+    )
+
+    def show_loading():
+        loading_indicator.visible = True
+        page.update()
+
+    def hide_loading():
+        loading_indicator.visible = False
+        page.update()
+
     global horarios
+    show_loading()
     horarios = con.get_request("horarios")
+    hide_loading()
 
 
     def actualizar_tabla():
+        show_loading()
         tabla.controls.clear()
 
     # Agregar los títulos de las columnas
@@ -38,10 +56,12 @@ def main(page: ft.Page):
                         spacing=10,
                         )
                         )
+            hide_loading()
             page.update()
 
 
     def eliminar_horario(horario_id):
+        show_loading()
         global horarios
         horario_seleccionado=con.get_by_id("horarios",horario_id)
         materia_a_modificar_id=horario_seleccionado["id_materia"]
@@ -50,6 +70,7 @@ def main(page: ft.Page):
         con.put_request("materias",materia_a_modificar_id,materia_a_modificar)
         con.delete_request("horarios",horario_id)
         horarios=con.get_request("horarios")
+        hide_loading()
         page.snack_bar = ft.SnackBar(ft.Text("Horario eliminado correctamente"))
         page.snack_bar.open = True
         # Actualizar la tabla
@@ -69,13 +90,19 @@ def main(page: ft.Page):
     )
 
     actualizar_tabla()
+    return ft.Stack(
+        controls=[
+            ft.Column(
+                controls=[
+                    ft.Text("Horarios asignados", size=24, weight=ft.FontWeight.BOLD),
+                    containerTabla,
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            ),
+            loading_indicator,
+        ],
+        expand=True,  # Asegura que el Stack ocupe toda la pantalla
+    )
 
-    return ft.Column(
-    controls=[
-        ft.Text("Horarios Asignados Actualmente", size=24, weight=ft.FontWeight.BOLD),
-        containerTabla,
-    ],
-    alignment=ft.MainAxisAlignment.CENTER,  # Alinea verticalmente
-    horizontal_alignment=ft.CrossAxisAlignment.CENTER,  # Alinea horizontalmente
-)
 

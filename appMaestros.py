@@ -2,7 +2,25 @@ import flet as ft
 import services.conexion as con
 
 def main(page: ft.Page):
+
+    loading_indicator = ft.Container(
+        content=ft.ProgressRing(),
+        alignment=ft.alignment.center,  # Centrado en el contenedor
+        visible=False,  # Inicialmente oculto
+        expand=True,  # Asegura que ocupe toda la pantalla
+    )
+
+    def show_loading():
+        loading_indicator.visible = True
+        page.update()
+
+    def hide_loading():
+        loading_indicator.visible = False
+        page.update()
+
+    show_loading
     profesores = con.get_request("maestros")
+    hide_loading()
 
     error_dialog = ft.AlertDialog(
         title=ft.Text("Error de validación"),
@@ -17,35 +35,38 @@ def main(page: ft.Page):
         tabla.controls.append(
             ft.Row(
                 [
-                    ft.Text("ID", weight=ft.FontWeight.BOLD),
-                    ft.Text("Nombre", weight=ft.FontWeight.BOLD),
-                    ft.Text("Apellido", weight=ft.FontWeight.BOLD),
-                    ft.Text("Teléfono", weight=ft.FontWeight.BOLD),
-                    ft.Text("Dirección", weight=ft.FontWeight.BOLD),
-                    ft.Text("Acciones", weight=ft.FontWeight.BOLD),
+                    ft.Text("ID", weight=ft.FontWeight.BOLD, width=100),
+                    ft.Text("Nombre", weight=ft.FontWeight.BOLD, width=100),
+                    ft.Text("Apellido", weight=ft.FontWeight.BOLD, width=100),
+                    ft.Text("Teléfono", weight=ft.FontWeight.BOLD, width=150),
+                    ft.Text("Dirección", weight=ft.FontWeight.BOLD, width=150),
+                    ft.Text("Acciones", weight=ft.FontWeight.BOLD, width=150),
                     ],
-                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                    alignment=ft.MainAxisAlignment.START,
+                    spacing=10,
                     )
                     )
         for profesor in profesores:
             tabla.controls.append(
                 ft.Row(
                     [
-                        ft.Text(profesor["id"]),
-                        ft.Text(profesor["nombre"]),
-                        ft.Text(profesor["apellido"]),
-                        ft.Text(profesor["telefono"]),
-                        ft.Text(profesor["direccion"]),
+                        ft.Text(profesor["id"], width=100),
+                        ft.Text(profesor["nombre"], width=100),
+                        ft.Text(profesor["apellido"], width=100),
+                        ft.Text(profesor["telefono"], width=150),
+                        ft.Text(profesor["direccion"], width=150),
                         ft.ElevatedButton("Eliminar", on_click=lambda e, pid=profesor["id"]: eliminar_profesor(pid)),
                         ],
-                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-                        )
-                        )
+                        alignment=ft.MainAxisAlignment.START,
+                        spacing=10,
+                    )
+                )
             page.update()
 
 
     def eliminar_profesor(profesor_id):
         nonlocal profesores
+        show_loading()
         # Cargar los datos de las materias
         materias = con.get_request("materias")
     
@@ -68,10 +89,12 @@ def main(page: ft.Page):
         # Actualizar la tabla de la UI
         page.snack_bar=ft.SnackBar(ft.Text("Profesor Eliminado Correctamente!"))
         page.snack_bar.open=True
+        hide_loading()
         actualizar_tabla()
 
 
     def agregar_profesor(e):
+        show_loading()
         nonlocal profesores
         nuevo_profesor = {
             "id":"",
@@ -90,6 +113,7 @@ def main(page: ft.Page):
         nombre_input.value = apellido_input.value = telefono_input.value = direccion_input.value = ""
         page.snack_bar=ft.SnackBar(ft.Text("Profesor Agregado Correctamente"))
         page.snack_bar.open=True
+        hide_loading()
         actualizar_tabla()
 
     # Formulario
@@ -129,21 +153,26 @@ def main(page: ft.Page):
             scroll=ft.ScrollMode.AUTO,  # Habilita el desplazamiento
             alignment=ft.MainAxisAlignment.CENTER,  # Alinear los controles dentro del Column
         ),
-        width=700,  # Ancho del contenedor
-        height=300,  # Altura del contenedor
-        alignment=ft.alignment.center,
+        width=850,  # Ancho del contenedor
+        height=400,  # Altura del contenedor
+        #alignment=ft.alignment.center,
         padding=20,
     )
 
     actualizar_tabla()
 
-    return ft.Column(
-        [
-            ft.Text("Gestión de Profesores", size=24, weight=ft.FontWeight.BOLD),
-            formulario,
-            containerTabla,
+    return ft.Stack(
+        controls=[
+            ft.Column(
+                controls=[
+                    ft.Text("Gestión de Profesores", size=24, weight=ft.FontWeight.BOLD),
+                    formulario,
+                    containerTabla,
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            ),
+            loading_indicator,
         ],
-        alignment=ft.MainAxisAlignment.CENTER,  # Alinea verticalmente
-        horizontal_alignment=ft.CrossAxisAlignment.CENTER,  # Alinea horizontalmente
-        
+        expand=True,  # Asegura que el Stack ocupe toda la pantalla
     )

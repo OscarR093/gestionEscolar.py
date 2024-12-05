@@ -3,10 +3,27 @@ import services.conexion as con
 
 
 def main(page: ft.Page):
+    loading_indicator = ft.Container(
+        content=ft.ProgressRing(),
+        alignment=ft.alignment.center,  # Centrado en el contenedor
+        visible=False,  # Inicialmente oculto
+        expand=True,  # Asegura que ocupe toda la pantalla
+    )
+
+    def show_loading():
+        loading_indicator.visible = True
+        page.update()
+
+    def hide_loading():
+        loading_indicator.visible = False
+        page.update()
+
     # Cargar los datos de los maestros y materias
     global materias
+    show_loading()
     profesores = con.get_request("maestros")
     materias = con.get_request("materias")
+    hide_loading()
     
     # Variables para almacenar las selecciones
     global profesor_seleccionado 
@@ -21,6 +38,7 @@ def main(page: ft.Page):
 
     # Función para actualizar las listas
     def actualizar_listas():
+        show_loading()
         global materias  # Asegúrate de actualizar la variable global
         materias = con.get_request("materias")  # Recupera los datos más recientes desde el servidor
     
@@ -52,10 +70,12 @@ def main(page: ft.Page):
                 )
             )
         # Actualiza la página solo al final
+        hide_loading()
         page.update()
 
 
     def asignar_materia_seleccionada(materia_id):
+        show_loading()
         global materias  # Asegúrate de trabajar con la variable global
         for materia in materias:
             if materia["id"] == materia_id:  
@@ -63,6 +83,7 @@ def main(page: ft.Page):
                 con.put_request("materias", materia_id, materia)
                 break  # Salir del bucle una vez encontrada
         materias = con.get_request("materias")
+        hide_loading()
         actualizar_listas()
 
 
@@ -70,20 +91,25 @@ def main(page: ft.Page):
 
     # Función para seleccionar un maestro
     def seleccionar_maestro(profesor):
+        show_loading()
         global profesor_seleccionado
         profesor_seleccionado = profesor
         texto_maestro.value = f"Maestro seleccionado: {profesor['nombre']} {profesor['apellido']}"
+        hide_loading()
         page.update()
 
     # Función para seleccionar una materia
     def seleccionar_materia(materia):
+        show_loading()
         global materia_seleccionada
         materia_seleccionada = materia
         texto_materia.value = f"Materia seleccionada: {materia['nombre']}"
+        hide_loading()
         page.update()
 
     # Función para asignar el maestro y la materia
     def asignar_horario(e):
+        show_loading()
         global profesor_seleccionado, materia_seleccionada
         if profesor_seleccionado is None or materia_seleccionada is None:
             page.snack_bar = ft.SnackBar(ft.Text("¡Debe seleccionar un maestro y una materia!"))
@@ -111,7 +137,7 @@ def main(page: ft.Page):
 
         # Guardar el horario
         con.post_request("horarios", horario)
-
+        hide_loading()
         page.snack_bar = ft.SnackBar(ft.Text("Materia Asignada Correctamente"))
         page.snack_bar.open = True
         page.update()
@@ -146,7 +172,7 @@ def main(page: ft.Page):
         spacing=20,  # Espaciado entre las columnas
     ),
     width=700,  # Ancho total del contenedor
-    height=400,  # Altura del contenedor
+    height=300,  # Altura del contenedor
     alignment=ft.alignment.center,  # Alinea el contenedor en el centro
 )
 
@@ -157,13 +183,20 @@ def main(page: ft.Page):
     actualizar_listas()
 
 # Exportar para ser utilizado en el `main.py`
-    return ft.Column(
+    return ft.Stack(
         controls=[
-                texto_maestro,
-                texto_materia,
-                containerListas,
-                boton_asignar,
-            ],
-    alignment=ft.MainAxisAlignment.CENTER,  # Alinea verticalmente
-    horizontal_alignment=ft.CrossAxisAlignment.CENTER,  # Alinea horizontalmente
-)
+            ft.Column(
+                controls=[
+                    ft.Text("Asignacion de materias", size=24, weight=ft.FontWeight.BOLD),
+                    texto_maestro,
+                    texto_materia,
+                    containerListas,
+                    boton_asignar,
+                ],
+                alignment=ft.MainAxisAlignment.CENTER,
+                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            ),
+            loading_indicator,
+        ],
+        expand=True,  # Asegura que el Stack ocupe toda la pantalla
+    )

@@ -10,15 +10,39 @@ def main(page: ft.Page):
     page.window.width = 900
     page.window.height = 600
     page.window.resizable = False
-    
-    
+
+    # Indicador de carga global
+    loading_indicator = ft.Container(
+        content=ft.ProgressRing(),
+        alignment=ft.alignment.center,  # Centrado en el contenedor
+        visible=False,  # Inicialmente oculto
+        expand=True,  # Asegura que ocupe toda la pantalla
+    )
+
+    # Contenedor principal
+    main_view = ft.Stack(
+        expand=True,
+        controls=[loading_indicator],
+    )
+
+    def show_loading():
+        loading_indicator.visible = True
+        page.update()
+
+    def hide_loading():
+        loading_indicator.visible = False
+        page.update()
+
     def route_change(route):
+        show_loading()  # Muestra el indicador de carga
         page.views.clear()
-        materias_no_asignadas = con.search_by_field("materias","Asignada",False)
-        if materias_no_asignadas != None:
-            TextoMaterias=ft.Text(f"Hay {len(materias_no_asignadas)} materias sin asignar")
+
+        # Aquí se cargan los datos de la base de datos
+        materias_no_asignadas = con.search_by_field("materias", "Asignada", False)
+        if materias_no_asignadas is not None:
+            TextoMaterias = ft.Text(f"Hay {len(materias_no_asignadas)} materias sin asignar")
         else:
-            TextoMaterias=ft.Text(f"Todas las materias se han asignado")
+            TextoMaterias = ft.Text(f"Todas las materias se han asignado")
         
         if page.route == "/":
             # Menú principal
@@ -79,7 +103,6 @@ def main(page: ft.Page):
                     ]
                 )
             )
-            
         else:
             # Página no encontrada
             page.views.append(
@@ -91,9 +114,14 @@ def main(page: ft.Page):
                     ],
                 )
             )
+        
+        hide_loading()  # Oculta el indicador de carga
         page.update()
 
     page.on_route_change = route_change
+
+    # Añade la vista principal al stack
+    page.add(main_view)
     page.go("/")
 
 ft.app(target=main)
