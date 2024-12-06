@@ -11,13 +11,64 @@ def main(page: ft.Page):
     page.window.height = 600
     page.window.resizable = False
 
+    global is_authenticated
+
+    def validate_credentials(username, password):
+        """Lógica de validación de credenciales"""
+        return username == "admin" and password == "1234"
+
+    def login_screen(page: ft.Page):
+        """Pantalla de inicio de sesión"""
+        username_field = ft.TextField(label="Usuario", autofocus=True, width=300)
+        password_field = ft.TextField(label="Contraseña", password=True, can_reveal_password=True, width=300)
+        error_text = ft.Text("", color="red", visible=False)
+
+        def handle_login(e):
+            nonlocal username_field, password_field, error_text
+            username = username_field.value
+            password = password_field.value
+            if validate_credentials(username, password):
+                global is_authenticated
+                is_authenticated = True
+                page.views.clear()
+                page.go("/")  # Ir al menú principal
+            else:
+                error_text.value = "Credenciales incorrectas. Inténtelo de nuevo."
+                error_text.visible = True
+                page.update()
+
+        return ft.Stack(
+            controls=[
+                ft.Column(
+                    controls=[
+                        ft.Text("Iniciar Sesión", size=30, weight=ft.FontWeight.BOLD),
+                        username_field,
+                        password_field,
+                        error_text,
+                        ft.ElevatedButton("Ingresar", on_click=handle_login, width=100, bgcolor="pink", color="black"),
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                ),
+                loading_indicator,
+            ],
+            expand=True,
+        )
+
     # Indicador de carga global
     loading_indicator = ft.Container(
-        content=ft.ProgressRing(),
-        alignment=ft.alignment.center,  # Centrado en el contenedor
-        visible=False,  # Inicialmente oculto
-        expand=True,  # Asegura que ocupe toda la pantalla
-    )
+    content=ft.Column(
+        controls=[
+            ft.ProgressRing(),
+            ft.Text("Conectando", visible=True, color="White"),
+        ],
+        alignment=ft.MainAxisAlignment.CENTER,
+        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+    ),
+    alignment=ft.alignment.center,
+    visible=False,
+    expand=True,)
+
 
     # Contenedor principal
     main_view = ft.Stack(
@@ -34,7 +85,7 @@ def main(page: ft.Page):
         page.update()
 
     def route_change(route):
-        show_loading()  # Muestra el indicador de carga
+        show_loading()
         page.views.clear()
 
         # Aquí se cargan los datos de la base de datos
@@ -45,7 +96,6 @@ def main(page: ft.Page):
             TextoMaterias = ft.Text(f"Todas las materias se han asignado")
         
         if page.route == "/":
-            # Menú principal
             page.views.append(
                 ft.View(
                     "/",
@@ -62,7 +112,6 @@ def main(page: ft.Page):
                 )
             )
         elif page.route == "/maestros":
-            # Gestión de Maestros
             page.views.append(
                 ft.View(
                     "/maestros",
@@ -73,7 +122,6 @@ def main(page: ft.Page):
                 )
             )
         elif page.route == "/materias":
-            # Gestión de Materias
             page.views.append(
                 ft.View(
                     "/materias",
@@ -103,8 +151,17 @@ def main(page: ft.Page):
                     ]
                 )
             )
+        elif page.route == "/login":
+            page.views.append(
+                ft.View(
+                    "/login",
+                    controls=[
+                        login_screen(page),
+                    ], vertical_alignment=ft.MainAxisAlignment.CENTER,
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                )
+            )
         else:
-            # Página no encontrada
             page.views.append(
                 ft.View(
                     "/404",
@@ -115,13 +172,13 @@ def main(page: ft.Page):
                 )
             )
         
-        hide_loading()  # Oculta el indicador de carga
+        hide_loading()
         page.update()
 
     page.on_route_change = route_change
 
     # Añade la vista principal al stack
     page.add(main_view)
-    page.go("/")
+    page.go("/login")
 
 ft.app(target=main)
