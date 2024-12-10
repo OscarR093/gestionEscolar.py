@@ -1,9 +1,8 @@
 import flet as ft
-import appMaestros
-import appMaterias
-import asignatura
+import appMaestros, appMaterias, asignatura, horarios, registro, adminUsers
 import services.conexion as con
-import horarios
+from services.TempFileManager import TempFileManager
+from passlib.hash import sha256_crypt
 
 def main(page: ft.Page):
     page.title = "Sistema de Gestión"
@@ -12,10 +11,36 @@ def main(page: ft.Page):
     page.window.resizable = False
 
     global is_authenticated
+    temp=TempFileManager()
 
     def validate_credentials(username, password):
         """Lógica de validación de credenciales"""
-        return username == "admin" and password == "1234"
+        try:
+            # Busca al usuario por su nombre de usuario
+            user = con.search_by_field("users", "username", username)[0]
+        
+            # Verifica si el usuario está activo
+            if not user["active"]:
+                print("El usuario no está activo.")
+                return False
+        
+            # Verifica las credenciales
+            if username == user["username"] and sha256_crypt.verify(password, user["password"]):
+                temp.create_temp_file(user["id"])
+                #print(temp.read_temp_file())
+                return True
+            else:
+                print("Nombre de usuario o contraseña incorrectos.")
+                return False
+        except IndexError:
+                # Si no se encuentra al usuario
+                print("Usuario no encontrado.")
+                return False
+        except Exception as e:
+            # Otros errores
+            print(f"Error: {str(e)}")
+            return False
+
 
     def login_screen(page: ft.Page):
         """Pantalla de inicio de sesión"""
@@ -46,7 +71,9 @@ def main(page: ft.Page):
                         password_field,
                         error_text,
                         ft.ElevatedButton("Ingresar", on_click=handle_login, width=100, bgcolor="pink", color="black"),
+                        ft.ElevatedButton("Registrarse", width=100,on_click=lambda e: page.go("/registro"), bgcolor="#121212", color="pink"),
                     ],
+                    
                     alignment=ft.MainAxisAlignment.CENTER,
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 ),
@@ -86,8 +113,19 @@ def main(page: ft.Page):
 
     def route_change(route):
         show_loading()
+        TextoUsuario=""
+        botonAdmi=ft.ElevatedButton("Ir a solicitudes de activacion de usuario", on_click=lambda e: page.go("/adminUsers"), visible=False, bgcolor="pink", color="black")
         page.views.clear()
-
+        if(temp.temp_file_exists):
+                try:
+                    userID=temp.read_temp_file()
+                    user=con.get_by_id("users",userID)
+                    TextoUsuario=ft.Text(f"Bienvenido {user["name"]} ",size=20, weight=ft.FontWeight.BOLD)
+                    if(user["super"]):
+                        botonAdmi.visible=True
+                except:
+                    print("No hay archivo de sesion guardado")
+        
         # Aquí se cargan los datos de la base de datos
         materias_no_asignadas = con.search_by_field("materias", "Asignada", False)
         if materias_no_asignadas is not None:
@@ -101,11 +139,13 @@ def main(page: ft.Page):
                     "/",
                     controls=[
                         ft.Text("Menú Principal", size=30, weight=ft.FontWeight.BOLD),
+                        TextoUsuario,
                         TextoMaterias,
                         ft.ElevatedButton("Ir a Gestión de Maestros", on_click=lambda e: page.go("/maestros")),
                         ft.ElevatedButton("Ir a Gestión de Materias", on_click=lambda e: page.go("/materias")),
                         ft.ElevatedButton("Ir a Asignaturas", on_click=lambda e: page.go("/asignatura")),
                         ft.ElevatedButton("Ver horarios asignados", on_click=lambda e: page.go("/horarios")),
+                        botonAdmi,
                     ],
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                     vertical_alignment=ft.MainAxisAlignment.CENTER,
@@ -157,6 +197,28 @@ def main(page: ft.Page):
                     "/login",
                     controls=[
                         login_screen(page),
+                    ], vertical_alignment=ft.MainAxisAlignment.CENTER,
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                )
+            )
+        elif page.route == "/registro":
+            page.views.append(
+                ft.View(
+                    "/registro",
+                    controls=[
+                        registro.main(page),
+                        ft.ElevatedButton("Volver al inicio de sesion", on_click=lambda e: page.go("/login"), bgcolor="pink", color="black")
+                    ], vertical_alignment=ft.MainAxisAlignment.CENTER,
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                )
+            )
+        elif page.route == "/adminUsers":
+            page.views.append(
+                ft.View(
+                    "/adminUsers",
+                    controls=[
+                        adminUsers.main(page),
+                        ft.ElevatedButton("Volver al menu principal", on_click=lambda e: page.go("/"))
                     ], vertical_alignment=ft.MainAxisAlignment.CENTER,
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 )
