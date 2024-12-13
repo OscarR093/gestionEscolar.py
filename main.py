@@ -1,5 +1,6 @@
 import flet as ft
 import appMaestros, appMaterias, asignatura, horarios, registro, adminUsers
+from cambiar_contrasena import crear_dialogo
 import services.conexion as con
 from services.TempFileManager import TempFileManager
 from passlib.hash import sha256_crypt
@@ -9,9 +10,21 @@ def main(page: ft.Page):
     page.window.width = 900
     page.window.height = 600
     page.window.resizable = False
+    logo=ft.Image(src="img/unijv.png", width=300)
 
     global is_authenticated
     temp=TempFileManager()
+
+    def set_user(user):
+        global User
+        User=user
+        
+
+    def mostrar_dialogo(e):
+        dialogo=crear_dialogo(page, User)
+        page.overlay.append(dialogo)
+        dialogo.open = True
+        page.update()
 
     def validate_credentials(username, password):
         """Lógica de validación de credenciales"""
@@ -66,6 +79,7 @@ def main(page: ft.Page):
             controls=[
                 ft.Column(
                     controls=[
+                        logo,
                         ft.Text("Iniciar Sesión", size=30, weight=ft.FontWeight.BOLD),
                         username_field,
                         password_field,
@@ -114,12 +128,13 @@ def main(page: ft.Page):
     def route_change(route):
         show_loading()
         TextoUsuario=""
-        botonAdmi=ft.ElevatedButton("Ir a solicitudes de activacion de usuario", on_click=lambda e: page.go("/adminUsers"), visible=False, bgcolor="pink", color="black")
+        botonAdmi=ft.ElevatedButton("Ir a gestion de usuarios", on_click=lambda e: page.go("/adminUsers"), visible=False, bgcolor="pink", color="black")
         page.views.clear()
         if(temp.temp_file_exists):
                 try:
                     userID=temp.read_temp_file()
                     user=con.get_by_id("users",userID)
+                    set_user(user)
                     TextoUsuario=ft.Text(f"Bienvenido {user["name"]} ",size=20, weight=ft.FontWeight.BOLD)
                     if(user["super"]):
                         botonAdmi.visible=True
@@ -145,6 +160,7 @@ def main(page: ft.Page):
                         ft.ElevatedButton("Ir a Gestión de Materias", on_click=lambda e: page.go("/materias")),
                         ft.ElevatedButton("Ir a Asignaturas", on_click=lambda e: page.go("/asignatura")),
                         ft.ElevatedButton("Ver horarios asignados", on_click=lambda e: page.go("/horarios")),
+                        ft.ElevatedButton("Cambiar contraseña", on_click=mostrar_dialogo),
                         botonAdmi,
                     ],
                     horizontal_alignment=ft.CrossAxisAlignment.CENTER,

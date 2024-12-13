@@ -9,6 +9,7 @@ def main(page: ft.Page):
         visible=False,  # Inicialmente oculto
         expand=True,  # Asegura que ocupe toda la pantalla
     )
+    boton_aceptar=ft.ElevatedButton("Aceptar", width=110)
 
     def show_loading():
         loading_indicator.visible = True
@@ -20,8 +21,17 @@ def main(page: ft.Page):
 
     global usuarios
     show_loading()
-    usuarios = con.search_by_field("users","active",False)
+    usuarios = con.search_by_field("users","super",False)
     hide_loading()
+
+    def crear_boton_aceptar(usuario):
+        boton_aceptar = ft.ElevatedButton(
+                    "Aceptar", 
+                    disabled= usuario["active"],
+                    on_click=lambda e: activar_usuario(usuario["id"])
+        ) 
+        return boton_aceptar
+
 
 
     def actualizar_tabla():
@@ -36,21 +46,22 @@ def main(page: ft.Page):
                     ft.Text("Usuario", weight=ft.FontWeight.BOLD, width=100),
                     ft.Text("E-Mail", weight=ft.FontWeight.BOLD, width=200),
                     ft.Text("Aceptar", weight=ft.FontWeight.BOLD, width=110),
-                    ft.Text("Rechazar", weight=ft.FontWeight.BOLD, width=110),
+                    ft.Text("Eliminar", weight=ft.FontWeight.BOLD, width=110),
                     ],
                     alignment=ft.MainAxisAlignment.START,
                     spacing=10,
                     )
                     )
         for usuario in usuarios:
+            boton_aceptar=crear_boton_aceptar(usuario)
             tabla.controls.append(
                 ft.Row(
                     [
                         ft.Text(usuario["name"], width=100),
                         ft.Text(usuario["username"],width=100),
                         ft.Text(usuario["email"], width=200),
-                        ft.ElevatedButton("Aceptar", width=110, on_click=lambda e, mid=usuario["id"]: activar_usuario(mid)),
-                        ft.ElevatedButton("Rechazar", bgcolor="pink", color="black", width=110, on_click=lambda e, mid=usuario["id"]: eliminar_usuario(mid)),
+                        boton_aceptar,
+                        ft.ElevatedButton("Eliminar", bgcolor="pink", color="black", width=110, on_click=lambda e, mid=usuario["id"]: eliminar_usuario(mid)),
                         ],
                         alignment=ft.MainAxisAlignment.START,
                         spacing=10,
@@ -64,7 +75,7 @@ def main(page: ft.Page):
         show_loading()
         global usuarios
         con.delete_request("users",usuario_id)
-        usuarios=con.search_by_field("users","active",False)
+        usuarios=con.search_by_field("users","super",False)
         hide_loading()
         page.snack_bar = ft.SnackBar(ft.Text("Se elimino usuario rechazado"))
         page.snack_bar.open = True
@@ -85,7 +96,7 @@ def main(page: ft.Page):
                     "active": True
                     }
         con.put_request("users",usuario_id,usuario_a_activar)
-        usuarios=con.search_by_field("users","active",False)
+        usuarios=con.search_by_field("users","super",False)
         hide_loading()
         page.snack_bar = ft.SnackBar(ft.Text("Usuario Activado correctamente"))
         page.snack_bar.open = True
